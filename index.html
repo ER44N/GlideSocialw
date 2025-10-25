@@ -1,21 +1,59 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hoş Geldin</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SocialNova — Demo Login</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <h1>Merhaba!</h1>
-    <p>Bu senin için hazırlanmış modern bir açılış sayfası.</p>
-    <button id="ctaBtn">Keşfet</button>
-  </header>
-  <section class="content">
-    <h2>Neler Var?</h2>
-    <p>Kafana göre dedin, ben de modern ve sade bir tasarım hazırlıyorum.</p>
-  </section>
+  <main class="container">
+    <div class="card">
+      <div class="brand">
+        <!-- Minimal Instagram-like SVG icon (non-branded) -->
+        <svg width="48" height="48" viewBox="0 0 24 24" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0" stop-color="#ff9a9e"/>
+              <stop offset="0.5" stop-color="#fad0c4"/>
+              <stop offset="1" stop-color="#fad0c4"/>
+            </linearGradient>
+          </defs>
+          <rect rx="5" width="24" height="24" fill="url(#g)"></rect>
+          <circle cx="12" cy="12" r="4" fill="white" opacity="0.95"></circle>
+        </svg>
+        <div class="brand-text">
+          <h1>SocialNova</h1>
+          <small>Demo · Front-end only</small>
+        </div>
+      </div>
+
+      <form id="loginForm" autocomplete="off" novalidate>
+        <label>
+          <span>Instagram username</span>
+          <input id="username" name="username" type="text" placeholder="e.g. cool_creator" required />
+        </label>
+
+        <label>
+          <span>Password</span>
+          <input id="password" name="password" type="password" placeholder="••••••••" required />
+        </label>
+
+        <div class="row">
+          <label class="remember">
+            <input id="demoCheck" type="checkbox" /> Demo only — no data is sent
+          </label>
+        </div>
+
+        <button id="loginBtn" type="submit">Log in</button>
+
+        <p class="meta">
+          This is a <strong>demo UI</strong>. Passwords are not transmitted or stored.
+        </p>
+      </form>
+    </div>
+  </main>
+
   <script src="script.js"></script>
 </body>
 </html>
