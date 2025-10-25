@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Main Menu — SocialNova</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="card" role="main" aria-live="polite">
+      <div class="header" aria-hidden="false">
+        <h1 id="title">Welcome!</h1>
+        <p id="subtitle">Press the big button to earn <strong>+5 coins</strong>. You can click once every 5 seconds.</p>
+
+        <div class="coins" aria-hidden="false">
+          <div class="coin-badge" title="Your coins">
+            <span class="coin-icon">★</span>
+            <span id="coinCount">0</span>
+          </div>
+          <div style="color:var(--muted); font-size:13px;" id="lastEarn">Last: —</div>
+        </div>
+      </div>
+
+      <div class="play-area">
+        <button id="earnBtn" class="big-btn" aria-pressed="false" aria-label="Earn coins">
+          +5 COIN
+        </button>
+      </div>
+
+      <div class="helper" id="cooldownText">Ready to click</div>
+
+      <div class="info" id="infoBox">Welcome to your dashboard.</div>
+
+      <div class="footer">Coins persist in your browser (localStorage). This is a front-end demo only.</div>
+    </div>
+  </main>
+
+  <script>
+    // anamenu logic: +5 coins per click, 5s cooldown, show info messages.
+    (function(){
+      const COIN_KEY = 'sn_coins_v1';
+      const TS_KEY = 'sn_last_click_v1';
+      const COIN_PER_CLICK = 5;
+      const COOLDOWN_MS = 5000;
+
+      const coinCountEl = document.getElementById('coinCount');
+      const lastEarnEl = document.getElementById('lastEarn');
+      const infoBox = document.getElementById('infoBox');
+      const earnBtn = document.getElementById('earnBtn');
+      const cooldownText = document.getElementById('cooldownText');
+      const titleEl = document.getElementById('title');
+
+      // load from storage
+      function loadCoins(){
+        const raw = localStorage.getItem(COIN_KEY);
+        return raw ? parseInt(raw,10) : 0;
+      }
+      function saveCoins(n){
+        localStorage.setItem(COIN_KEY, String(n));
+      }
+      function loadLastTs(){
+        const raw = localStorage.getItem(TS_KEY);
+        return raw ? parseInt(raw,10) : 0;
+      }
+      function saveLastTs(ts){
+        localStorage.setItem(TS_KEY, String(ts));
+      }
+
+      let coins = loadCoins();
+      let lastTs = loadLastTs();
+
+      function updateUI(){
+        coinCountEl.textContent = coins;
+        if(lastTs){
+          const d = new Date(lastTs);
+          lastEarnEl.textContent = 'Last: ' + d.toLocaleTimeString();
+        } else {
+          lastEarnEl.textContent = 'Last: —';
+        }
+      }
+
+      // cooldown logic
+      let cooldownInterval = null;
+      function startCooldown(){
+        earnBtn.disabled = true;
+        updateCooldownText();
+        cooldownInterval = setInterval(updateCooldownText, 200);
+      }
+      function stopCooldown(){
+        earnBtn.disabled = false;
+        cooldownText.textContent = 'Ready to click';
+        if(cooldownInterval) {
+          clearInterval(cooldownInterval);
+          cooldownInterval = null;
+        }
+      }
+      function updateCooldownText(){
+        const now = Date.now();
+        const elapsed = now - lastTs;
+        const remain = COOLDOWN_MS - elapsed;
+        if(remain <= 0){
+          stopCooldown();
+          return;
+        }
+        const sec = Math.ceil(remain / 1000);
+        cooldownText.textContent = `Wait ${sec} s`;
+      }
+
+      // show temporary info messages
+      let infoTimeout = null;
+      function showInfo(msg, timeout=2800){
+        infoBox.textContent = msg;
+        infoBox.style.opacity = '1';
+        if(infoTimeout) clearTimeout(infoTimeout);
+        if(timeout > 0) infoTimeout = setTimeout(() => {
+          infoBox.textContent = 'Ready for more!';
+        }, timeout);
+      }
+
+      // click handler
+      earnBtn.addEventListener('click', () => {
+        const now = Date.now();
+        const elapsed = now - lastTs;
+        if(elapsed < COOLDOWN_MS){
+          const remain = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
+          showInfo(`Hold on — please wait ${remain}s before next claim.`, 1800);
+          return;
+        }
+
+        // grant coins
+        coins += COIN_PER_CLICK;
+        lastTs = now;
+        saveCoins(coins);
+        saveLastTs(lastTs);
+        updateUI();
+
+        // feedback
+        showInfo(`+${COIN_PER_CLICK} coins! Total: ${coins}`, 3000);
+        titleEl.textContent = `Nice! +${COIN_PER_CLICK}`;
+        setTimeout(() => titleEl.textContent = `Welcome!`, 1400);
+
+        // start cooldown
+        startCooldown();
+      });
+
+      // initialize: if last click still in cooldown, enable cooldown
+      (function init(){
+        updateUI();
+        const now = Date.now();
+        if(now - lastTs < COOLDOWN_MS){
+          startCooldown();
+        } else {
+          stopCooldown();
+        }
+
+        // small UX: allow pressing space/enter to activate
+        document.addEventListener('keydown', (e) => {
+          if((e.code === 'Space' || e.key === ' ') && document.activeElement !== document.body){
+            return; // let form elements handle it
+          }
+          if(e.code === 'Space' || e.key === 'Enter'){
+            e.preventDefault();
+            if(!earnBtn.disabled) earnBtn.click();
+          }
+        });
+
+        // populate greeting with username if present in URL param
+        const params = new URLSearchParams(location.search);
+        const user = params.get('user');
+        if(user){
+          const safe = String(user).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          titleEl.textContent = `Welcome, @${safe}`;
+        }
+      })();
+    })();
+  </script>
+</body>
+</html>
